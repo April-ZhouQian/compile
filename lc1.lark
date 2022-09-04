@@ -1,0 +1,75 @@
+%%
+from lc_demo.lc_ast import *
+def append(lst, element):
+    lst.append(element)
+    return lst
+%%
+start : stmts -> Block($1)
+lc  :or -> $1
+    | CNAME "=" lc ->AssignVal($1.value, $3)
+    | "function" "(" args ")" "{" stmts "}" -> NamedFunc("", $3, Block($6))
+    | "function" "(" ")" "{" stmts "}" -> NamedFunc("", [], Block($5))
+    | "if" "(" lc ")" "{" stmts "}" -> IfBlock($3, Block($6), Block([]))
+    | "if" "(" lc ")" "{" stmts "}" "else" "{" stmts "}" -> IfBlock($3, Block($6), Block($10))
+    | "while" "(" lc ")" "{" stmts "}" -> WhileBlock($3, Block($6))
+    | "return" lc -> Return($2)
+    | "function" CNAME "(" args ")" "{" stmts "}" -> NamedFunc($2.value, $4, Block($7))
+    | "function" CNAME "(" ")" "{" stmts "}" -> NamedFunc($2.value, [], Block($6))
+
+stmts : lc [";"] -> [$1]
+       | stmts lc [";"] -> append($1, $2)
+
+call: atom "(" actual_params ")" -> CallFunc($1, $3)
+    | atom "(" ")" -> CallFunc($1, "")
+
+name : CNAME -> $1.value
+
+args :  name  -> [$1]
+       | args "," name  -> append($1, $3)
+
+actual_params: or -> [$1]
+            | actual_params "," or -> append($1, $3)
+
+or: and -> $1
+    | or "||" and -> LogicalOr($1, $3)
+
+and: not -> $1
+    | and "&&" not -> LogicalAnd($1, $3)
+
+not: relation -> $1
+    | "!" not -> LogicalNot($2)
+
+relation: addsub -> $1
+          | relation ">" addsub -> BinOp($1, $3, Var("gt"))
+          | relation "<" addsub -> BinOp($1, $3, Var("lt"))
+          | relation ">=" addsub -> BinOp($1, $3, Var("ge"))
+          | relation "<=" addsub -> BinOp($1, $3, Var("le"))
+          | relation "==" addsub -> BinOp($1, $3, Var("eq"))
+
+addsub: muldiv -> $1
+        | addsub "+" muldiv -> BinOp($1, $3, Var("add"))
+        | addsub "-" muldiv -> BinOp($1, $3, Var("sub"))
+
+muldiv: unary -> $1
+        | muldiv "*" unary -> BinOp($1, $3, Var("mul"))
+        | muldiv "/" unary -> BinOp($1, $3, Var("div"))
+        | muldiv "%" unary -> BinOp($1, $3, Var("mod"))
+
+unary: atom -> $1
+      | "+" unary -> UnaryOp($2, "pos")
+      | "-" unary -> UnaryOp($2, "neg")
+
+atom: CNAME    -> Var($1.value)
+    | NUMBER   -> NumberVal(eval($1.value))
+    | "true"   -> BoolVal(True)
+    | "false"  -> BoolVal(False)
+    | ESCAPED_STRING -> StringVal(eval($1.value))
+    | "(" lc ")" -> $2
+    | "{" stmts "}" -> Block($2)
+    | atom "(" actual_params ")" -> CallFunc($1, $3)
+    | atom "(" ")" -> CallFunc($1, "")
+%import common.WS
+%import common.ESCAPED_STRING
+%import common.CNAME
+%import common.NUMBER
+%ignore WS

@@ -1,0 +1,75 @@
+   
+                            
+                         
+                       
+              
+  
+start : stmts -> start_0                           
+lc  :or -> lc_0              
+    | CNAME "=" lc -> lc_1                                             
+    | "function" "(" args ")" "{" stmts "}" -> lc_2                                                                            
+    | "function" "(" ")" "{" stmts "}" -> lc_3                                                                       
+    | "if" "(" lc ")" "{" stmts "}" -> lc_4                                                                         
+    | "if" "(" lc ")" "{" stmts "}" "else" "{" stmts "}" -> lc_5                                                                                               
+    | "while" "(" lc ")" "{" stmts "}" -> lc_6                                                                    
+    | "return" lc -> lc_7                                
+    | "function" CNAME "(" args ")" "{" stmts "}" -> lc_8                                                                                        
+    | "function" CNAME "(" ")" "{" stmts "}" -> lc_9                                                                                   
+
+stmts : lc [";"] -> stmts_0                         
+       | stmts lc [";"] -> stmts_1                                          
+
+call: atom "(" actual_params ")" -> call_0                                                     
+    | atom "(" ")" -> call_1                                       
+
+name : CNAME -> name_0                         
+
+args :  name -> args_0                      
+       | args "," name -> args_1                                          
+
+actual_params: or -> actual_params_0                          
+            | actual_params "," or -> actual_params_1                                                     
+
+or: and -> or_0              
+    | or "||" and -> or_1                                       
+
+and: not -> and_0               
+    | and "&&" not -> and_1                                         
+
+not: relation -> not_0                    
+    | "!" not -> not_1                                
+
+relation: addsub -> relation_0                       
+          | relation ">" addsub -> relation_1                                                            
+          | relation "<" addsub -> relation_2                                                            
+          | relation ">=" addsub -> relation_3                                                             
+          | relation "<=" addsub -> relation_4                                                             
+          | relation "==" addsub -> relation_5                                                             
+
+addsub: muldiv -> addsub_0                     
+        | addsub "+" muldiv -> addsub_1                                                         
+        | addsub "-" muldiv -> addsub_2                                                         
+
+muldiv: unary -> muldiv_0                    
+        | muldiv "*" unary -> muldiv_1                                                        
+        | muldiv "/" unary -> muldiv_2                                                        
+        | muldiv "%" unary -> muldiv_3                                                        
+
+unary: atom -> unary_0                  
+      | "+" unary -> unary_1                                        
+      | "-" unary -> unary_2                                        
+
+atom: CNAME -> atom_0                                
+    | NUMBER -> atom_1                                            
+    | "true" -> atom_2                                
+    | "false" -> atom_3                                 
+    | ESCAPED_STRING -> atom_4                                                  
+    | "(" lc ")" -> atom_5                       
+    | "{" stmts "}" -> atom_6                                 
+    | atom "(" actual_params ")" -> atom_7                                                     
+    | atom "(" ")" -> atom_8                                       
+%import common.WS
+%import common.ESCAPED_STRING
+%import common.CNAME
+%import common.NUMBER
+%ignore WS
