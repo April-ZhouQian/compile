@@ -1,4 +1,4 @@
-from lc_demo.transpile import *
+from lc_demo.transpile import compile_test
 
 res = compile_test(
     r"""

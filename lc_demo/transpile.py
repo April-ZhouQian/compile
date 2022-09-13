@@ -2,7 +2,8 @@ from __future__ import annotations
 from lc_demo.lc_ast import *
 from lc_demo import asm as ir
 import typing
-from lc_demo.scoper import *
+from lc_demo.scoper import scope, compute_scope
+from lc_demo.Collections import OrderedSet
 from lc_demo.lc import parser
 
 class Transpiler:
@@ -255,8 +256,3 @@ def compile_test(src: str):
     fptr = top.create_fptr_builder(block, "top")
     return ir.ModuleSpec(src, fptr)
 
-# def transpile_to_ir(src: str):
-#     x = parser.parse(src)
-#     transpile = Transpiler(src, None)
-#     transpile.before_visit(x, [])
-#     return visit(transpile.transpile, x)
