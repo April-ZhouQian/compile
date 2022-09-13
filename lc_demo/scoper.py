@@ -1,19 +1,21 @@
 from __future__ import annotations
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from lc_demo.lc_ast import *
-from lc_demo.lc import parser
+from lc_demo.Collections import OrderedSet
 
 @dataclass
 class _scope:
-    local_vars: set
-    free_vars: set
+    local_vars: OrderedSet[str]
+    free_vars: OrderedSet[str]
 
 @dataclass(repr=False)
 class scope:
-    local_vars: set = field(default_factory=set)
-    free_vars: set = field(default_factory=set)
+    local_vars: OrderedSet[str]
+    free_vars: OrderedSet[str]
     parent: scope | None = None
-
+    @classmethod
+    def new(cls, parent: scope | None):
+        return cls(OrderedSet(), OrderedSet(), parent)
     def find_var(self: scope, x: str):
         if x in self.local_vars or x in self.free_vars:
             return True
@@ -30,7 +32,6 @@ def scan(self: scope, x: str):
     if self.find_var(x):
         return True
     return False
-
 
 def visit(f: typing.Callable[[LC], typing.Any], x: LC):
     if isinstance(x, AssignVal):
@@ -54,7 +55,7 @@ def visit(f: typing.Callable[[LC], typing.Any], x: LC):
         f(x.body)
     elif isinstance(x, CallFunc):
         f(x.func)
-        for elt in x.arg:
+        for elt in x.args:
             f(elt)
     elif isinstance(x, BinOp):
         f(x.left)
@@ -84,12 +85,10 @@ def visit(f: typing.Callable[[LC], typing.Any], x: LC):
         else:
             assert False, x
 
-
-S = scope()
-S.parent = scope(local_vars = {"a", "c"})
-
-def test(x: LC, S:scope, res: list):
-    nested_funcs: list[NamedFunc] = []
+def compute_scope(x: LC, S:scope, args: list):
+    if args:
+        for arg in args:
+            S.local_vars.add(arg)
     enteredvars:dict[str, is_write] = {}
     def scan_variable(x: LC):
         if isinstance(x, Var):
@@ -100,7 +99,6 @@ def test(x: LC, S:scope, res: list):
         elif isinstance(x, NamedFunc):
             if x.name:
                 enteredvars[x.name] = True
-            nested_funcs.append(x)
         else:
             visit(scan_variable, x)
     scan_variable(x)
@@ -108,45 +106,4 @@ def test(x: LC, S:scope, res: list):
         if not S.find_var(enter):
             if is_write:
                 S.local_vars.add(enter)
-    for func in nested_funcs:
-        local_vars = set()
-        for arg in func.arg:
-            local_vars.add(arg)
-        sub_res = []
-        res.append(
-            (
-                func.name,
-                test(func.body, scope(local_vars=local_vars, parent = S), sub_res),
-                sub_res
-            ))
     return S
-
-
-res_list = []
-res = test(
-    parser.parse(r"""
-        a = 10;
-        b = true;
-        c = 1;
-        d = c;
-        function func1(m, n)
-        {
-            a = m;
-            x = c;
-            function func1_1(n)
-            {
-                a = m;
-            }
-        }
-        function func2(m)
-        {
-            b = m;
-            x = c;
-        }
-    """),
-    S,
-    res_list
-)
-
-for e in res_list:
-    print(e)

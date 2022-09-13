@@ -64,7 +64,7 @@ class Return:
 @dataclass(frozen=True)
 class CallFunc:
     func: LC
-    arg: list[LC]
+    args: list[LC]
 
 
 @dataclass(frozen=True)
@@ -137,7 +137,7 @@ def eval_lc(S: State, syntactic_structure: LC) -> tuple[typing.Any, State]:
     elif isinstance(syntactic_structure, NamedFunc):
 
         def rf(S_star: State, r_star):
-            arg = syntactic_structure.arg
+            arg = syntactic_structure.args
             S1 = State({**S.scope}, S.is_returning)
             r1 = None
             gap = len(r_star) - len(arg)
@@ -194,7 +194,7 @@ def eval_lc(S: State, syntactic_structure: LC) -> tuple[typing.Any, State]:
         return r, S_New
     elif isinstance(syntactic_structure, CallFunc):
         rf, S1 = eval_lc(S, syntactic_structure.func)
-        arg = syntactic_structure.arg
+        arg = syntactic_structure.args
         r = []
         S2 = State({**S1.scope}, S1.is_returning)
         for index in range(len(arg)):
