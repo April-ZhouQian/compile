@@ -137,7 +137,7 @@ def eval_lc(S: State, syntactic_structure: LC) -> tuple[typing.Any, State]:
     elif isinstance(syntactic_structure, NamedFunc):
 
         def rf(S_star: State, r_star):
-            arg = syntactic_structure.args
+            arg = syntactic_structure.arg
             S1 = State({**S.scope}, S.is_returning)
             r1 = None
             gap = len(r_star) - len(arg)

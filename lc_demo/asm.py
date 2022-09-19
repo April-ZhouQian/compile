@@ -5,35 +5,34 @@ from numbers import Number
 import typing
 import typing_extensions
 
-
-if typing.TYPE_CHECKING:
-    import typing_extensions
-
-    class TraffyIR(typing_extensions.Protocol):
+if not typing.TYPE_CHECKING:
+    class MIR:
         pass
-
-    class TraffyLHS(typing_extensions.Protocol):
+    class MLHS:
         pass
-
 else:
-    TraffyIR = object
-    TraffyLHS = object
+    from .asm import StoreFree, StoreLocal
+    MLHS = (StoreLocal| StoreFree) # type: ignore
+    from .asm import Constant, TrBlock, TrAssign, NamedFunc, TrIf, TrWhile, TrReturn, TrCall, TrBinOp, TrUnaryOp, FreeVar, LocalVar, TrLogicalAnd, TrLogicalOr, TrLogicalNot, TrFuncDef
+    MIR = (Constant | TrBlock | TrAssign | NamedFunc | TrIf | TrWhile | TrReturn | TrCall | TrBinOp | TrUnaryOp | FreeVar | LocalVar | TrLogicalAnd | TrLogicalOr | TrLogicalNot | TrFuncDef) # type: ignore
+
+
 @dataclass
-class TrNumber:
+class TrNumber(object):
     value: Number
 
 @dataclass
-class TrStr:
+class TrStr(object):
     value: str
 
 @dataclass
-class TrBool:
+class TrBool(object):
     value: bool
 
 if typing.TYPE_CHECKING:
-    TrObject = TrNumber | TrStr | TrBool  # type: ignore
+    TrObject = Number| str | bool # type: ignore
 else:
-    TrObject =(TrNumber, TrStr, TrBool)
+    TrObject = (Number, str, bool)
 
 @dataclass
 class Constant:
@@ -41,38 +40,38 @@ class Constant:
 
 @dataclass
 class TrBlock:
-    suite: list[TraffyIR]
+    suite: list[MIR]
 
 @dataclass
 class TrAssign:
-    lhs: TraffyLHS
-    rhs: TraffyIR
+    lhs: MLHS
+    rhs: MIR
 
-@dataclass
-class NamedFunc:
-    name: str
-    arg: list[str]
-    suite: list[TraffyIR]
+# @dataclass
+# class NamedFunc:
+#     name: str
+#     arg: list[str]
+#     suite: list[MIR]
 
 @dataclass
 class TrIf:
-    cond: TraffyIR
-    body: TraffyIR
-    else_body: TraffyIR
+    cond: MIR
+    body: MIR
+    else_body: MIR
 
 @dataclass
 class TrWhile:
-    cond: TraffyIR
-    body: TraffyIR
+    cond: MIR
+    body: MIR
 
 @dataclass
 class TrReturn:
-    value: TraffyIR
+    value: MIR
 
 @dataclass
 class TrCall:
-    func: TraffyIR
-    args: list[TraffyIR]
+    func: MIR
+    args: list[MIR]
 
 class OpUnary(IntEnum):
     INV = 0
@@ -93,45 +92,45 @@ class OpBin(IntEnum):
     Ge = 9
 @dataclass
 class TrBinOp:
-    left: TraffyIR
-    right: TraffyIR
+    left: MIR
+    right: MIR
     op: OpBin
 
 @dataclass
 class TrUnaryOp:
-    right: TraffyIR
+    operand: MIR
     op: OpUnary
 
 @dataclass
-class FreeVar(TraffyIR):
+class FreeVar:
     slot: int
 
 @dataclass
-class LocalVar(TraffyIR):
+class LocalVar:
     slot: int
 
 
 @dataclass
-class StoreLocal(TraffyLHS):
+class StoreLocal:
     slot: int
 
 @dataclass
-class StoreFree(TraffyLHS):
+class StoreFree:
     slot: int
 
 @dataclass
 class TrLogicalAnd:
-    left: TraffyIR
-    right: TraffyIR
+    left: MIR
+    right: MIR
 
 @dataclass
 class TrLogicalOr:
-    left: TraffyIR
-    right: TraffyIR
+    left: MIR
+    right: MIR
 
 @dataclass
 class TrLogicalNot:
-    operand: TraffyIR
+    operand: MIR
 #todo
 @dataclass
 class Metadata(object):
@@ -143,11 +142,11 @@ class Metadata(object):
 
 @dataclass
 class TrFuncPtr(object):
-    code: TraffyIR
+    code: MIR
     metadata: Metadata
 
 @dataclass
-class TrFuncDef(TraffyIR):
+class TrFuncDef:
     fptr: TrFuncPtr
     freeslots: list[int]
 
@@ -156,3 +155,4 @@ class TrFuncDef(TraffyIR):
 class ModuleSpec:
     sourceCode: str
     fptr: TrFuncPtr
+

@@ -11,7 +11,7 @@ class Transpiler:
         self.souce_code = source_code
         self.parent_scope = parent_scope
 
-    def create_fptr_builder(self, code: ir.TraffyIR, name: str):
+    def create_fptr_builder(self, code: ir.MIR, name: str):
         metadata = ir.Metadata(
             localnames=list(self.scope.local_vars),
             freenames=list(self.scope.free_vars),
@@ -42,19 +42,20 @@ class Transpiler:
         else:
             raise NameError(f"{id} is not a local/free variable")
 
-    def store_name_(self, id: str):
+    def store_name_(self, id: str) -> ir.MLHS:
         if id in self.scope.local_vars:
             i = self.scope.local_vars.order(id)
             return ir.StoreLocal(slot=i)
-        elif id in self.scope.free_vars:
+        # elif id in self.scope.free_vars:
+        else:
             i = self.scope.free_vars.order(id)
             return ir.StoreFree(slot=i)
-
     def load_name_(self, id: str):
         if id in self.scope.local_vars:
             i = self.scope.local_vars.order(id)
             return ir.LocalVar(slot=i)
-        elif id in self.scope.free_vars:
+        # elif id in self.scope.free_vars:
+        else:
             i = self.scope.free_vars.order(id)
             return ir.FreeVar(slot=i)
 
@@ -70,7 +71,7 @@ class Transpiler:
         elif isinstance(x, UnaryOp):
             op = unaryop_indices[x.op]
             operand = self.transpile(x.right)
-            return ir.TrUnaryOp(right=operand, op=op)
+            return ir.TrUnaryOp(operand=operand, op=op)
         elif isinstance(x, Return):
             value = self.transpile(x.body)
             return ir.TrReturn(value)
@@ -239,11 +240,11 @@ unaryop_indices: dict[str, ir.OpUnary] = {
 
 def const_to_variant(x: LC) -> ir.TrObject:
     if isinstance(x, BoolVal):
-        return ir.TrBool(value=x.value)
+        return x.value
     elif isinstance(x, NumberVal):
-        return ir.TrNumber(value=x.value)
+        return x.value
     elif isinstance(x, StringVal):
-        return ir.TrStr(value=x.value)
+        return x.value
     else:
         raise TypeError(x)
 
