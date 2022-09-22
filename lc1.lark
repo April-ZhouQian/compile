@@ -45,6 +45,7 @@ relation: addsub -> $1
           | relation ">=" addsub -> BinOp($1, $3, Var("ge"))
           | relation "<=" addsub -> BinOp($1, $3, Var("le"))
           | relation "==" addsub -> BinOp($1, $3, Var("eq"))
+          | relation "!=" addsub -> BinOp($1, $3, Var("ne"))
 
 addsub: muldiv -> $1
         | addsub "+" muldiv -> BinOp($1, $3, Var("add"))

@@ -1,9 +1,8 @@
 from __future__ import annotations
 from dataclasses import dataclass
 from enum import IntEnum
-from multiprocessing.sharedctypes import Value
-from lc_demo.asm import TrObject
-from utils.stack import stack
+from lc_demo.asm import TrObject, TrFuncDef
+
 class Variable:
     Value: TrObject
     def __init__(self, value: TrObject) -> None:
@@ -29,7 +28,7 @@ class Frame:
     def load_local(self, operand: int) -> TrObject:
         v = self.localvars[operand].Value
         return v
-    def load_reference(self, operand: int) -> Variable:
-        if operand < 0:
-            return self.func.freevars[-operand - 1]
-        return self.func.localvars[operand]
+    # def load_reference(self, operand: int) -> Variable:
+    #     if operand < 0:
+    #         return self.func.freevars[-operand - 1]
+    #     return self.func.localvars[operand]

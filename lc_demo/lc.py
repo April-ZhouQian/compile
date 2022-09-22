@@ -82,6 +82,8 @@ class lc_Transformer(Transformer):
         return  BinOp(__args[1-1], __args[3-1], Var("le"))
     def relation_5(self, __args):
         return  BinOp(__args[1-1], __args[3-1], Var("eq"))
+    def relation_6(self, __args):
+        return  BinOp(__args[1-1], __args[3-1], Var("ne"))
     def addsub_0(self, __args):
         return  __args[1-1]
     def addsub_1(self, __args):

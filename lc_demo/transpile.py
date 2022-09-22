@@ -11,7 +11,7 @@ class Transpiler:
         self.souce_code = source_code
         self.parent_scope = parent_scope
 
-    def create_fptr_builder(self, code: ir.MIR, name: str):
+    def create_fptr_builder(self, code: ir.MIR, name: str) ->ir.TrFuncPtr:
         metadata = ir.Metadata(
             localnames=list(self.scope.local_vars),
             freenames=list(self.scope.free_vars),
@@ -20,7 +20,7 @@ class Transpiler:
         )
         return ir.TrFuncPtr(code=code, metadata=metadata)
 
-    def before_visit(self, x, args):
+    def before_visit(self, x: LC, args: list[str]):
         self.scope = compute_scope(
             x,
             scope(
@@ -32,7 +32,7 @@ class Transpiler:
         )
 
     # 判断当前层的free来自上层的free还是local
-    def load_derefence(self, id: str):
+    def load_derefence(self, id: str) -> int:
         if id in self.scope.local_vars:
             i = self.scope.local_vars.order(id)
             return i
@@ -46,23 +46,24 @@ class Transpiler:
         if id in self.scope.local_vars:
             i = self.scope.local_vars.order(id)
             return ir.StoreLocal(slot=i)
-        # elif id in self.scope.free_vars:
-        else:
+        elif id in self.scope.free_vars:
             i = self.scope.free_vars.order(id)
             return ir.StoreFree(slot=i)
-    def load_name_(self, id: str):
+        else:
+            return ir.StoreGlobal(name=id)
+    def load_name_(self, id: str) ->ir.MIR:
         if id in self.scope.local_vars:
             i = self.scope.local_vars.order(id)
             return ir.LocalVar(slot=i)
-        # elif id in self.scope.free_vars:
-        else:
+        elif id in self.scope.free_vars:
             i = self.scope.free_vars.order(id)
             return ir.FreeVar(slot=i)
+        else:
+            return ir.GlobalVar(name=id)
 
-    def transpile(self, x: LC):
-        if isinstance(x, NumberVal) | isinstance(x, StringVal) | isinstance(x, BoolVal):
-            v = const_to_variant(x)
-            return ir.Constant(v)
+    def transpile(self, x: LC) ->ir.MIR:
+        if isinstance(x, NumberVal) or isinstance(x, StringVal) or isinstance(x, BoolVal):
+            return ir.Constant(x.value)
         # 此处左值只可能是变量，因此可以直接调用store_name
         elif isinstance(x, AssignVal):
             value = self.transpile(x.value)
@@ -137,7 +138,7 @@ class Transpiler:
             r = self.transpile(x.right)
             return ir.TrLogicalOr(left=l, right=r)
         elif isinstance(x, LogicalNot):
-            return ir.TrLogicalNot(x.right)
+            return ir.TrLogicalNot(self.transpile(x.right))
         elif isinstance(x, BinOp):
             l = self.transpile(x.left)
             r = self.transpile(x.right)
@@ -146,75 +147,15 @@ class Transpiler:
                 op = binop_indices[binop]
                 return ir.TrBinOp(left=l, right=r, op=op)
             else:
-                return
+                raise Exception
         elif isinstance(x, Var):
             return self.load_name_(x.name)
         else:
-            return visit(self.transpile, x)
+            if typing.TYPE_CHECKING:
+                typing_extensions.assert_never(x)
+            else:
+                assert False, x
 
-
-def visit(f, x: LC):
-    if isinstance(x, AssignVal):
-        return f(x.value)
-    elif isinstance(x, Block):
-        res = []
-        for elt in x.body:
-            res.append(f(elt))
-        return res
-    elif isinstance(x, IfBlock):
-        res = []
-        res.append(f(x.cond))
-        for elt in x.body.body:
-            res.append(f(elt))
-        for elt in x.else_body.body:
-            res.append(f(elt))
-        return res
-    elif isinstance(x, WhileBlock):
-        res = []
-        res.append(f(x.cond))
-        for elt in x.body.body:
-            res.append(f(elt))
-        return res
-    elif isinstance(x, Return):
-        return f(x.body)
-    elif isinstance(x, NamedFunc):
-        return f(x.body)
-    elif isinstance(x, CallFunc):
-        res = []
-        res.append(f(x.func))
-        for elt in x.args:
-            res.append(f(elt))
-        return res
-    elif isinstance(x, BinOp):
-        res = []
-        res.append(f(x.left))
-        res.append(f(x.op))
-        res.append(f(x.right))
-    elif isinstance(x, UnaryOp):
-        return f(x.right)
-    elif isinstance(x, LogicalOr):
-        res = []
-        res.append(f(x.left))
-        res.append(f(x.right))
-    elif isinstance(x, LogicalAnd):
-        res = []
-        res.append(f(x.left))
-        res.append(f(x.right))
-    elif isinstance(x, LogicalNot):
-        return f(x.right)
-    elif isinstance(x, Var):
-        pass
-    elif isinstance(x, BoolVal):
-        pass
-    elif isinstance(x, StringVal):
-        pass
-    elif isinstance(x, NumberVal):
-        pass
-    else:
-        if typing.TYPE_CHECKING:
-            typing_extensions.assert_never(x)
-        else:
-            assert False, x
 
 
 binop_indices: dict[str, ir.OpBin] = {
@@ -223,11 +164,12 @@ binop_indices: dict[str, ir.OpBin] = {
     "mul": ir.OpBin.MUL,
     "div": ir.OpBin.DIV,
     "eq": ir.OpBin.Eq,
-    "noteq": ir.OpBin.NotEq,
+    "ne": ir.OpBin.NotEq,
     "gt": ir.OpBin.Gt,
     "lt": ir.OpBin.Lt,
     "ge": ir.OpBin.Ge,
     "le": ir.OpBin.Le,
+    "mod": ir.OpBin.Mod
 }
 
 unaryop_indices: dict[str, ir.OpUnary] = {
@@ -238,22 +180,11 @@ unaryop_indices: dict[str, ir.OpUnary] = {
 }
 
 
-def const_to_variant(x: LC) -> ir.TrObject:
-    if isinstance(x, BoolVal):
-        return x.value
-    elif isinstance(x, NumberVal):
-        return x.value
-    elif isinstance(x, StringVal):
-        return x.value
-    else:
-        raise TypeError(x)
-
-
-def compile_test(src: str):
+def compile_test(src: str) -> ir.ModuleSpec:
     x = parser.parse(src)
     top = Transpiler(src, None)
     top.before_visit(x, [])
-    block = visit(top.transpile, x)
-    fptr = top.create_fptr_builder(block, "top")
+    block = top.transpile(x)
+    fptr = top.create_fptr_builder(code=block, name="top")
     return ir.ModuleSpec(src, fptr)
 

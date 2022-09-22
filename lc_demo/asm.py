@@ -4,6 +4,7 @@ from enum import IntEnum
 from numbers import Number
 import typing
 import typing_extensions
+# import lc_demo.trfunc as Func
 
 if not typing.TYPE_CHECKING:
     class MIR:
@@ -11,10 +12,10 @@ if not typing.TYPE_CHECKING:
     class MLHS:
         pass
 else:
-    from .asm import StoreFree, StoreLocal
-    MLHS = (StoreLocal| StoreFree) # type: ignore
-    from .asm import Constant, TrBlock, TrAssign, NamedFunc, TrIf, TrWhile, TrReturn, TrCall, TrBinOp, TrUnaryOp, FreeVar, LocalVar, TrLogicalAnd, TrLogicalOr, TrLogicalNot, TrFuncDef
-    MIR = (Constant | TrBlock | TrAssign | NamedFunc | TrIf | TrWhile | TrReturn | TrCall | TrBinOp | TrUnaryOp | FreeVar | LocalVar | TrLogicalAnd | TrLogicalOr | TrLogicalNot | TrFuncDef) # type: ignore
+    from .asm import StoreFree, StoreLocal, StoreGlobal
+    MLHS = (StoreLocal | StoreFree | StoreGlobal) # type: ignore
+    from .asm import Constant, TrBlock, TrAssign, TrIf, TrWhile, TrReturn, TrCall, TrBinOp, TrUnaryOp, FreeVar, LocalVar, GlobalVar, TrLogicalAnd, TrLogicalOr, TrLogicalNot, TrFuncDef
+    MIR = Constant | TrBlock | TrAssign | TrIf | TrWhile | TrReturn | TrCall | TrBinOp | TrUnaryOp | FreeVar | LocalVar | GlobalVar | TrLogicalAnd | TrLogicalOr | TrLogicalNot | TrFuncDef # type: ignore
 
 
 @dataclass
@@ -30,9 +31,10 @@ class TrBool(object):
     value: bool
 
 if typing.TYPE_CHECKING:
-    TrObject = Number| str | bool # type: ignore
+    from .trfunc import TrFunc
+    TrObject = Number| str | bool | None | TrFunc  # type: ignore
 else:
-    TrObject = (Number, str, bool)
+    TrObject = object
 
 @dataclass
 class Constant:
@@ -90,6 +92,7 @@ class OpBin(IntEnum):
     Gt = 7
     Le = 8
     Ge = 9
+    Mod = 10
 @dataclass
 class TrBinOp:
     left: MIR
@@ -109,6 +112,9 @@ class FreeVar:
 class LocalVar:
     slot: int
 
+@dataclass
+class GlobalVar:
+    name: TrObject
 
 @dataclass
 class StoreLocal:
@@ -117,6 +123,10 @@ class StoreLocal:
 @dataclass
 class StoreFree:
     slot: int
+
+@dataclass
+class StoreGlobal:
+    name: TrObject
 
 @dataclass
 class TrLogicalAnd:

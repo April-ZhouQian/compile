@@ -45,6 +45,7 @@ relation: addsub -> relation_0
           | relation ">=" addsub -> relation_3                                                             
           | relation "<=" addsub -> relation_4                                                             
           | relation "==" addsub -> relation_5                                                             
+          | relation "!=" addsub -> relation_6                                                             
 
 addsub: muldiv -> addsub_0                     
         | addsub "+" muldiv -> addsub_1                                                         

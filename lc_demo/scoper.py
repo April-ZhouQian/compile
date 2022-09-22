@@ -17,6 +17,7 @@ class scope:
     def new(cls, parent: scope | None):
         return cls(OrderedSet(), OrderedSet(), parent)
     def find_var(self: scope, x: str):
+        ###判断是否出现在上层
         if x in self.local_vars or x in self.free_vars:
             return True
         if self.parent:
@@ -85,11 +86,12 @@ def visit(f: typing.Callable[[LC], typing.Any], x: LC):
         else:
             assert False, x
 
-def compute_scope(x: LC, S:scope, args: list):
+def compute_scope(x: LC, S:scope, args: list[str]):
     if args:
         for arg in args:
             S.local_vars.add(arg)
     enteredvars:dict[str, is_write] = {}
+    explicit_globalvars:set[str]=set()
     def scan_variable(x: LC):
         if isinstance(x, Var):
             enteredvars.setdefault(x.name, False)
@@ -103,6 +105,8 @@ def compute_scope(x: LC, S:scope, args: list):
             visit(scan_variable, x)
     scan_variable(x)
     for enter, is_write in enteredvars.items():
+        if enter in explicit_globalvars:
+            continue
         if not S.find_var(enter):
             if is_write:
                 S.local_vars.add(enter)
