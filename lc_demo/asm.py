@@ -3,8 +3,6 @@ from dataclasses import dataclass
 from enum import IntEnum
 from numbers import Number
 import typing
-import typing_extensions
-# import lc_demo.trfunc as Func
 
 if not typing.TYPE_CHECKING:
     class MIR:

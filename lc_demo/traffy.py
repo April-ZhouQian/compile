@@ -3,6 +3,7 @@ from lc_demo.asm import *
 import lc_demo.rts as rts
 from lc_demo.frame import Frame, STATUS
 import lc_demo.trfunc as Func
+import typing_extensions
 
 def exec_mlhs(x: MLHS, frame: Frame, value: TrObject):
     if isinstance(x, StoreLocal):
@@ -58,9 +59,6 @@ def exec_mir(x: MIR, frame: Frame) ->TrObject :
         return exec_mir(x.right, frame)
     elif isinstance(x, TrLogicalNot):
         value = exec_mir(x.operand, frame)
-        #########
-        # opfunc = rts.RTS.OOFuncs[1]
-        # rt_value = opfunc(value)
         rt_value = not value
         return rt_value
     elif isinstance(x, TrBinOp):

@@ -21,11 +21,7 @@ class TrFunc:
             localvars.append(Frame.Variable(None))
         for i in range(len(args)):
             localvars[i].Value = args[i]
-        if not frame:
-            frame = Frame.Frame.make(self, localvars)
-        else:
-            frame.localvars = localvars
-            frame.func = self
+        frame = Frame.Frame.make(self, localvars)
         traffy.exec_mir(self.fptr.code, frame)
         return frame.retval
 

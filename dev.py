@@ -1,8 +1,8 @@
-from lc_demo.transpile import compile_test
+from lc_demo.transpile import transpile_test
 import lc_demo.trfunc as Func
 
 
-res = compile_test(
+res = transpile_test(
     r"""
         a = 2;
         function f(x)

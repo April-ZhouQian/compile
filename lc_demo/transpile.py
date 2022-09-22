@@ -20,7 +20,7 @@ class Transpiler:
         )
         return ir.TrFuncPtr(code=code, metadata=metadata)
 
-    def before_visit(self, x: LC, args: list[str]):
+    def before_transpile(self, x: LC, args: list[str]):
         self.scope = compute_scope(
             x,
             scope(
@@ -102,14 +102,14 @@ class Transpiler:
         elif isinstance(x, CallFunc):
             func = self.transpile(x.func)
             args = []
-            # CallFunc的参数为实参: list[LC] 要派发
+            # CallFunc的参数为实参: list[LC] 要继续转换
             for item in x.args:
                 arg = self.transpile(item)
                 args.append(arg)
             return ir.TrCall(func=func, args=args)
         # ★函数定义：创建新的transpiler对象对function内部进行一一转换
         # 1. 创建新的transpiler并将当前scope作为其parent scope
-        # 2. 调用before_visit函数，获取当前func的scope
+        # 2. 调用before_transpile函数，获取当前func的scope
         # 3. 对于函数体中的每条语句进行转换
         # 4. 创建fptr用于记录函数的信息
         # 5. 利用load_deference判断当前func内部的free来自上层的free还是local并记录其位置
@@ -117,7 +117,7 @@ class Transpiler:
         # 7. 将funcName作为左值进行存储，并完成赋值操作，右值为6得到的TrFuncDef
         elif isinstance(x, NamedFunc):
             transpiler = Transpiler(self.souce_code, self.scope)
-            transpiler.before_visit(x.body, x.arg)
+            transpiler.before_transpile(x.body, x.arg)
             xs = []
             for item in x.body.body:
                 xs.append(transpiler.transpile(item))
@@ -180,10 +180,10 @@ unaryop_indices: dict[str, ir.OpUnary] = {
 }
 
 
-def compile_test(src: str) -> ir.ModuleSpec:
+def transpile_test(src: str) -> ir.ModuleSpec:
     x = parser.parse(src)
     top = Transpiler(src, None)
-    top.before_visit(x, [])
+    top.before_transpile(x, [])
     block = top.transpile(x)
     fptr = top.create_fptr_builder(code=block, name="top")
     return ir.ModuleSpec(src, fptr)

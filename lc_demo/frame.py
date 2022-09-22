@@ -24,7 +24,6 @@ class Frame:
     localvars: list[Variable]
     freevars: list[Variable]
     retval: TrObject | None
-    # traceback: stack
     func: trfunc.TrFunc
 
     def load_free(self, operand: int) -> TrObject:
@@ -36,7 +35,7 @@ class Frame:
         v = self.localvars[operand].Value
         return v
 
-    def load_global(self, var: TrObject):
+    def load_global(self, var: TrObject) -> TrObject:
         v = self.func.globals[var]
         return v
     def load_reference(self, operand: int) -> Variable:
