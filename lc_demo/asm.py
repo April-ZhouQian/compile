@@ -1,4 +1,3 @@
-from __future__ import annotations
 from dataclasses import dataclass
 from enum import IntEnum
 from numbers import Number
@@ -12,64 +11,58 @@ if not typing.TYPE_CHECKING:
 else:
     from .asm import StoreFree, StoreLocal, StoreGlobal
     MLHS = (StoreLocal | StoreFree | StoreGlobal) # type: ignore
-    from .asm import Constant, TrBlock, TrAssign, TrIf, TrWhile, TrReturn, TrCall, TrBinOp, TrUnaryOp, FreeVar, LocalVar, GlobalVar, TrLogicalAnd, TrLogicalOr, TrLogicalNot, TrFuncDef
-    MIR = Constant | TrBlock | TrAssign | TrIf | TrWhile | TrReturn | TrCall | TrBinOp | TrUnaryOp | FreeVar | LocalVar | GlobalVar | TrLogicalAnd | TrLogicalOr | TrLogicalNot | TrFuncDef # type: ignore
+    from .asm import Constant, MBlock, MAssign, MIf, MWhile, MReturn, MCall, MBinOp, MUnaryOp, FreeVar, LocalVar, GlobalVar, MLogicalAnd, MLogicalOr, MLogicalNot, MFuncDef
+    MIR = Constant | MBlock | MAssign | MIf | MWhile | MReturn | MCall | MBinOp | MUnaryOp | FreeVar | LocalVar | GlobalVar | MLogicalAnd | MLogicalOr | MLogicalNot | MFuncDef # type: ignore
 
 
 @dataclass
-class TrNumber(object):
+class MNumber(object):
     value: Number
 
 @dataclass
-class TrStr(object):
+class MStr(object):
     value: str
 
 @dataclass
-class TrBool(object):
+class MBool(object):
     value: bool
 
 if typing.TYPE_CHECKING:
-    from .trfunc import TrFunc
-    TrObject = Number| str | bool | None | TrFunc  # type: ignore
+    from .mfunc import MFunc
+    MObject = Number| str | bool | None | MFunc  # type: ignore
 else:
-    TrObject = object
+    MObject = object
 
 @dataclass
 class Constant:
-    obj: TrObject
+    obj: MObject
 
 @dataclass
-class TrBlock:
+class MBlock:
     suite: list[MIR]
 
 @dataclass
-class TrAssign:
+class MAssign:
     lhs: MLHS
     rhs: MIR
 
-# @dataclass
-# class NamedFunc:
-#     name: str
-#     arg: list[str]
-#     suite: list[MIR]
-
 @dataclass
-class TrIf:
+class MIf:
     cond: MIR
     body: MIR
     else_body: MIR
 
 @dataclass
-class TrWhile:
+class MWhile:
     cond: MIR
     body: MIR
 
 @dataclass
-class TrReturn:
+class MReturn:
     value: MIR
 
 @dataclass
-class TrCall:
+class MCall:
     func: MIR
     args: list[MIR]
 
@@ -92,13 +85,13 @@ class OpBin(IntEnum):
     Ge = 9
     Mod = 10
 @dataclass
-class TrBinOp:
+class MBinOp:
     left: MIR
     right: MIR
     op: OpBin
 
 @dataclass
-class TrUnaryOp:
+class MUnaryOp:
     operand: MIR
     op: OpUnary
 
@@ -112,7 +105,7 @@ class LocalVar:
 
 @dataclass
 class GlobalVar:
-    name: TrObject
+    name: MObject
 
 @dataclass
 class StoreLocal:
@@ -124,22 +117,22 @@ class StoreFree:
 
 @dataclass
 class StoreGlobal:
-    name: TrObject
+    name: MObject
 
 @dataclass
-class TrLogicalAnd:
+class MLogicalAnd:
     left: MIR
     right: MIR
 
 @dataclass
-class TrLogicalOr:
+class MLogicalOr:
     left: MIR
     right: MIR
 
 @dataclass
-class TrLogicalNot:
+class MLogicalNot:
     operand: MIR
-#todo
+
 @dataclass
 class Metadata(object):
     localnames: list[str]
@@ -147,20 +140,20 @@ class Metadata(object):
     codename: str
     sourceCode: None
 
-
 @dataclass
-class TrFuncPtr(object):
+class MFuncPtr(object):
     code: MIR
     metadata: Metadata
 
 @dataclass
-class TrFuncDef:
-    fptr: TrFuncPtr
+class MFuncDef:
+    fptr: MFuncPtr
     freeslots: list[int]
 
-
-@dataclass
+@dataclass(frozen=True)
 class ModuleSpec:
     sourceCode: str
-    fptr: TrFuncPtr
+    fptr: MFuncPtr
 
+def return_globals():
+    return globals()

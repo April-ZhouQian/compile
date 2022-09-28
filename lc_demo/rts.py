@@ -1,12 +1,12 @@
 from __future__ import annotations
-from lc_demo.asm import TrObject
+from lc_demo.asm import MObject
 from typing_extensions import Protocol
 
 class UnaryOperator(Protocol):
-    def __call__(self, __arg: TrObject) -> TrObject:
+    def __call__(self, __arg: MObject) -> MObject:
         ...
 class BinaryOperator(Protocol):
-    def __call__(self, __arg1: TrObject, __arg2: TrObject) -> TrObject:
+    def __call__(self, __arg1: MObject, __arg2: MObject) -> MObject:
         ...
 class RTS:
     object_none = None
@@ -39,57 +39,57 @@ class RTS:
         return OOOFuncs
 
     @staticmethod
-    def object_bool(trobject:TrObject) ->bool:
-        return bool(trobject)
+    def object_bool(MObject:MObject) ->bool:
+        return bool(MObject)
     @staticmethod
-    def object_call_ex(rt_func: TrObject, rt_args:list):
+    def object_call_ex(rt_func: MObject, rt_args:list):
         return rt_func(*rt_args)  # type: ignore
    ###一元运算
     @staticmethod
-    def object_inv(arg: TrObject):
+    def object_inv(arg: MObject):
         return ~arg # type: ignore
     @staticmethod
-    def object_not(arg: TrObject):
+    def object_not(arg: MObject):
         return not arg
     @staticmethod
-    def object_neg(arg: TrObject):
+    def object_neg(arg: MObject):
         return - arg #type: ignore
     @staticmethod
-    def object_pos(arg: TrObject):
+    def object_pos(arg: MObject):
         return + arg #type: ignore
     #二元运算
     @staticmethod
-    def object_add(arg1: TrObject, arg2: TrObject):
+    def object_add(arg1: MObject, arg2: MObject):
         return arg1 + arg2 #type: ignore
     @staticmethod
-    def object_sub(arg1: TrObject, arg2: TrObject):
+    def object_sub(arg1: MObject, arg2: MObject):
         return arg1 - arg2 #type: ignore
     @staticmethod
-    def object_mul(arg1: TrObject, arg2: TrObject):
+    def object_mul(arg1: MObject, arg2: MObject):
         return arg1 * arg2  #type: ignore
     @staticmethod
-    def object_div(arg1: TrObject, arg2: TrObject):
+    def object_div(arg1: MObject, arg2: MObject):
         return arg1 / arg2  #type: ignore
     @staticmethod
-    def object_eq(arg1: TrObject, arg2: TrObject):
+    def object_eq(arg1: MObject, arg2: MObject):
         return arg1 == arg2
     @staticmethod
-    def object_noteq(arg1: TrObject, arg2: TrObject):
+    def object_noteq(arg1: MObject, arg2: MObject):
         return arg1 != arg2
     @staticmethod
-    def object_gt(arg1: TrObject, arg2: TrObject):
+    def object_gt(arg1: MObject, arg2: MObject):
         return arg1 > arg2  #type: ignore
     @staticmethod
-    def object_lt(arg1: TrObject, arg2: TrObject):
+    def object_lt(arg1: MObject, arg2: MObject):
         return arg1 < arg2 #type: ignore
     @staticmethod
-    def object_ge(arg1: TrObject, arg2: TrObject):
+    def object_ge(arg1: MObject, arg2: MObject):
         return arg1 >= arg2 #type: ignore
     @staticmethod
-    def object_le(arg1: TrObject, arg2: TrObject):
+    def object_le(arg1: MObject, arg2: MObject):
         return arg1 <= arg2  #type: ignore
     @staticmethod
-    def object_mod(arg1: TrObject, arg2: TrObject):
+    def object_mod(arg1: MObject, arg2: MObject):
         return arg1 % arg2 #type: ignore
 
 

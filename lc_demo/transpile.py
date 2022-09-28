@@ -11,14 +11,14 @@ class Transpiler:
         self.souce_code = source_code
         self.parent_scope = parent_scope
 
-    def create_fptr_builder(self, code: ir.MIR, name: str) ->ir.TrFuncPtr:
+    def create_fptr_builder(self, code: ir.MIR, name: str) ->ir.MFuncPtr:
         metadata = ir.Metadata(
             localnames=list(self.scope.local_vars),
             freenames=list(self.scope.free_vars),
             codename=name,
             sourceCode=None,
         )
-        return ir.TrFuncPtr(code=code, metadata=metadata)
+        return ir.MFuncPtr(code=code, metadata=metadata)
 
     def before_transpile(self, x: LC, args: list[str]):
         self.scope = compute_scope(
@@ -68,37 +68,37 @@ class Transpiler:
         elif isinstance(x, AssignVal):
             value = self.transpile(x.value)
             lhs = self.store_name_(x.var)
-            return ir.TrAssign(lhs, value)
+            return ir.MAssign(lhs, value)
         elif isinstance(x, UnaryOp):
             op = unaryop_indices[x.op]
             operand = self.transpile(x.right)
-            return ir.TrUnaryOp(operand=operand, op=op)
+            return ir.MUnaryOp(operand=operand, op=op)
         elif isinstance(x, Return):
             value = self.transpile(x.body)
-            return ir.TrReturn(value)
+            return ir.MReturn(value)
         elif isinstance(x, Block):
-            xs = []
+            xs : list[ir.MIR] = []
             for item in x.body:
                 xs.append(self.transpile(item))
-            return ir.TrBlock(suite=xs)
+            return ir.MBlock(suite=xs)
         elif isinstance(x, WhileBlock):
             cond = self.transpile(x.cond)
             body = []
             for item in x.body.body:
                 body.append(self.transpile(item))
-            body_block = ir.TrBlock(body)
-            return ir.TrWhile(cond=cond, body=body_block)
+            body_block = ir.MBlock(body)
+            return ir.MWhile(cond=cond, body=body_block)
         elif isinstance(x, IfBlock):
             cond = self.transpile(x.cond)
             body = []
             else_body = []
             for item in x.body.body:
                 body.append(self.transpile(item))
-            body_block = ir.TrBlock(body)
+            body_block = ir.MBlock(body)
             for item in x.else_body.body:
                 else_body.append(self.transpile(item))
-            else_block = ir.TrBlock(else_body)
-            return ir.TrIf(cond=cond, body=body_block, else_body=else_block)
+            else_block = ir.MBlock(else_body)
+            return ir.MIf(cond=cond, body=body_block, else_body=else_block)
         elif isinstance(x, CallFunc):
             func = self.transpile(x.func)
             args = []
@@ -106,7 +106,7 @@ class Transpiler:
             for item in x.args:
                 arg = self.transpile(item)
                 args.append(arg)
-            return ir.TrCall(func=func, args=args)
+            return ir.MCall(func=func, args=args)
         # ★函数定义：创建新的transpiler对象对function内部进行一一转换
         # 1. 创建新的transpiler并将当前scope作为其parent scope
         # 2. 调用before_transpile函数，获取当前func的scope
@@ -121,31 +121,31 @@ class Transpiler:
             xs = []
             for item in x.body.body:
                 xs.append(transpiler.transpile(item))
-            block = ir.TrBlock(xs)
+            block = ir.MBlock(xs)
             fptr = transpiler.create_fptr_builder(block, x.name)
             freelots = []
             for item in transpiler.scope.free_vars:
                 freelots.append(self.load_derefence(item))
-            func_body = ir.TrFuncDef(fptr=fptr, freeslots=freelots)
+            func_body = ir.MFuncDef(fptr=fptr, freeslots=freelots)
             lhs = self.store_name_(x.name)
-            return ir.TrAssign(lhs=lhs, rhs=func_body)
+            return ir.MAssign(lhs=lhs, rhs=func_body)
         elif isinstance(x, LogicalAnd):
             l = self.transpile(x.left)
             r = self.transpile(x.right)
-            return ir.TrLogicalAnd(left=l, right=r)
+            return ir.MLogicalAnd(left=l, right=r)
         elif isinstance(x, LogicalOr):
             l = self.transpile(x.left)
             r = self.transpile(x.right)
-            return ir.TrLogicalOr(left=l, right=r)
+            return ir.MLogicalOr(left=l, right=r)
         elif isinstance(x, LogicalNot):
-            return ir.TrLogicalNot(self.transpile(x.right))
+            return ir.MLogicalNot(self.transpile(x.right))
         elif isinstance(x, BinOp):
             l = self.transpile(x.left)
             r = self.transpile(x.right)
             if isinstance(x.op, Var):
                 binop = x.op.name
                 op = binop_indices[binop]
-                return ir.TrBinOp(left=l, right=r, op=op)
+                return ir.MBinOp(left=l, right=r, op=op)
             else:
                 raise Exception
         elif isinstance(x, Var):
