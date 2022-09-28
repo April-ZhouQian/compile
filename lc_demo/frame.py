@@ -28,16 +28,26 @@ class Frame:
 
     def load_free(self, operand: int) -> MObject:
         v = self.freevars[operand].Value
-        ##判断是否v==null
+        if v == None:
+            name = self.func.fptr.metadata.freenames[operand]
+            raise NameError("undefined free variable {name}".format(name = name))
         return v
 
     def load_local(self, operand: int) -> MObject:
         v = self.localvars[operand].Value
+        if v == None:
+            name = self.func.fptr.metadata.localnames[operand]
+            raise NameError("undefined free variable {name}".format(name = name))
         return v
 
     def load_global(self, var: MObject) -> MObject:
-        v = self.func.globals[var]
-        return v
+        if var in self.func.globals:
+            v = self.func.globals[var]
+            if v == None:
+                raise NameError("undefined global variable {var}".format(var = var))
+            return v
+        else:
+            raise NameError("no global variable {var}".format(var = var) )
     def load_reference(self, operand: int) -> Variable:
         if operand < 0:
             return self.func.freevars[-operand - 1]
