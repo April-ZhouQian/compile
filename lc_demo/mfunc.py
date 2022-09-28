@@ -2,7 +2,7 @@ from __future__ import annotations
 import typing
 from lc_demo.asm import MFuncPtr, MObject
 import lc_demo.frame as Frame
-import lc_demo.traffy as traffy
+import lc_demo.intp as intp
 
 class MFunc:
     freevars: list[Frame.Variable]
@@ -22,6 +22,6 @@ class MFunc:
         for i in range(len(args)):
             localvars[i].Value = args[i]
         frame = Frame.Frame.make(self, localvars)
-        traffy.exec_mir(self.fptr.code, frame)
+        intp.exec_mir(self.fptr.code, frame)
         return frame.retval
 
