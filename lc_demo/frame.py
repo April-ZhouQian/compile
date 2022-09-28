@@ -2,7 +2,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from enum import IntEnum
 from lc_demo.asm import MObject
-import lc_demo.mfunc as trfunc
+import lc_demo.mfunc as mfunc
 import lc_demo.rts as rts
 
 
@@ -24,7 +24,7 @@ class Frame:
     localvars: list[Variable]
     freevars: list[Variable]
     retval: MObject | None
-    func: trfunc.MFunc
+    func: mfunc.MFunc
 
     def load_free(self, operand: int) -> MObject:
         v = self.freevars[operand].Value
@@ -61,7 +61,7 @@ class Frame:
     def store_global(self, v:MObject, value: MObject):
         self.func.globals[v] = value
     @staticmethod
-    def make(func: trfunc.MFunc, localvars: list[Variable]) -> Frame:
+    def make(func: mfunc.MFunc, localvars: list[Variable]) -> Frame:
         return Frame(
             CONT=STATUS(0),
             func=func,
