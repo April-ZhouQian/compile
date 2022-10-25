@@ -15,7 +15,7 @@ lc  :or -> $1
     | "return" lc -> Return($2)
     | "function" CNAME "(" args ")" "{" stmts "}" -> NamedFunc($2.value, $4, Block($7))
     | "function" CNAME "(" ")" "{" stmts "}" -> NamedFunc($2.value, [], Block($6))
-
+    | "local" CNAME -> Local($2.value)
 stmts : lc [";"] -> [$1]
        | stmts lc [";"] -> append($1, $2)
 

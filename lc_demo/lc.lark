@@ -15,7 +15,7 @@ lc  :or -> lc_0
     | "return" lc -> lc_7                                
     | "function" CNAME "(" args ")" "{" stmts "}" -> lc_8                                                                                        
     | "function" CNAME "(" ")" "{" stmts "}" -> lc_9                                                                                   
-
+    | "local" CNAME -> lc_10                                       
 stmts : lc [";"] -> stmts_0                         
        | stmts lc [";"] -> stmts_1                                          
 

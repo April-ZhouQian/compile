@@ -95,9 +95,12 @@ class LogicalAnd:
 class LogicalNot:
     right: LC
 
+@dataclass(frozen=True)
+class Local:
+    var: str
 
 if typing.TYPE_CHECKING:
-    LC = Var | NumberVal | BoolVal | StringVal | AssignVal | Block | NamedFunc | IfBlock | WhileBlock | Return | CallFunc | BinOp | UnaryOp | LogicalOr | LogicalAnd | LogicalNot  # type: ignore
+    LC = Var | NumberVal | BoolVal | StringVal | AssignVal | Block | NamedFunc | IfBlock | WhileBlock | Return | CallFunc | BinOp | UnaryOp | LogicalOr | LogicalAnd | LogicalNot | Local # type: ignore
 else:
     LC = (
         Var,
@@ -116,6 +119,7 @@ else:
         LogicalOr,
         LogicalAnd,
         LogicalNot,
+        Local
     )
 
 
@@ -235,6 +239,8 @@ def eval_lc(S: State, syntactic_structure: LC) -> tuple[typing.Any, State]:
     elif isinstance(syntactic_structure, LogicalNot):
         right, S = eval_lc(S, syntactic_structure.right)
         return not right, S
+    elif isinstance(syntactic_structure, Local):
+        return S.scope[syntactic_structure.var], S
     if typing.TYPE_CHECKING:
         typing_extensions.assert_never(syntactic_structure)
     else:

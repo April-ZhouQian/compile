@@ -80,6 +80,8 @@ def visit(f: typing.Callable[[LC], typing.Any], x: LC):
         pass
     elif isinstance(x, NumberVal):
         pass
+    elif isinstance(x, Local):
+        pass
     else:
         if typing.TYPE_CHECKING:
             typing_extensions.assert_never(x)
@@ -101,11 +103,13 @@ def compute_scope(x: LC, S:scope, args: list[str]):
         elif isinstance(x, NamedFunc):
             if x.name:
                 enteredvars[x.name] = True
+        elif isinstance(x, Local):
+            S.local_vars.add(x.var)
         else:
             visit(scan_variable, x)
     scan_variable(x)
     for enter, is_write in enteredvars.items():
-        if enter in explicit_globalvars:
+        if enter in explicit_globalvars or enter in S.local_vars:
             continue
         if not S.find_var(enter):
             if is_write:

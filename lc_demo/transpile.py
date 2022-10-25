@@ -61,7 +61,7 @@ class Transpiler:
         else:
             return ir.GlobalVar(name=id)
 
-    def transpile(self, x: LC) ->ir.MIR:
+    def transpile(self, x: LC):
         if isinstance(x, NumberVal) or isinstance(x, StringVal) or isinstance(x, BoolVal):
             return ir.Constant(x.value)
         # 此处左值只可能是变量，因此可以直接调用store_name
@@ -150,6 +150,8 @@ class Transpiler:
                 raise Exception
         elif isinstance(x, Var):
             return self.load_name_(x.name)
+        elif isinstance(x, Local):
+            return ir.Constant(0) #type:ignore
         else:
             if typing.TYPE_CHECKING:
                 typing_extensions.assert_never(x)
@@ -182,6 +184,7 @@ unaryop_indices: dict[str, ir.OpUnary] = {
 
 def transpile_test(src: str) -> ir.ModuleSpec:
     x = parser.parse(src)
+    x = Return(x)
     top = Transpiler(src, None)
     top.before_transpile(x, [])
     block = top.transpile(x)

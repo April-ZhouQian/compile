@@ -11,3 +11,5 @@ json_ir = typing.cast(ModuleSpec, deserialize(res, globals))
 
 func = Func.MFunc(json_ir.fptr.metadata.freenames, json_ir.fptr,globals={'print': print, 'm': 3})
 exec_res = func.__call__()
+if exec_res:
+    print("结果为：",exec_res)

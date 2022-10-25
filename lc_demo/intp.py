@@ -20,16 +20,17 @@ def exec_mlhs(x: MLHS, frame: Frame, value: MObject):
 
 def exec_mir(x: MIR, frame: Frame) ->MObject :
     if isinstance(x, MBlock):
+        res = None
         for item in x.suite:
-            exec_mir(item, frame)
+            res = exec_mir(item, frame)
             if frame.CONT != STATUS.NORMAL:
                 break
-        return rts.RTS.object_none
+        return res
     elif isinstance(x, MReturn):
         rt_value = exec_mir(x.value, frame)
         frame.CONT = STATUS.RETURN
         frame.retval = rt_value
-        return rts.RTS.object_none
+        return rt_value
     elif isinstance(x, MWhile):
         rt_value = rts.RTS.object_none
         while(rts.RTS.object_bool(exec_mir(x.cond, frame))):
@@ -39,12 +40,13 @@ def exec_mir(x: MIR, frame: Frame) ->MObject :
             break
         return rt_value
     elif isinstance(x, MIf):
+        res = None
         if(rts.RTS.object_bool(exec_mir(x.cond, frame))):
-            exec_mir(x.body, frame)
+            res = exec_mir(x.body, frame)
         else:
             if x.else_body:
-                exec_mir(x.else_body, frame)
-        return rts.RTS.object_none
+                res = exec_mir(x.else_body, frame)
+        return res
     elif isinstance(x, Constant):
         return x.obj
     elif isinstance(x, MLogicalAnd):

@@ -40,6 +40,8 @@ class lc_Transformer(Transformer):
         return  NamedFunc(__args[2-1].value, __args[4-1], Block(__args[7-1]))
     def lc_9(self, __args):
         return  NamedFunc(__args[2-1].value, [], Block(__args[6-1]))
+    def lc_10(self, __args):
+        return  Local(__args[2-1].value)
     def stmts_0(self, __args):
         return  [__args[1-1]]
     def stmts_1(self, __args):

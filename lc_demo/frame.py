@@ -37,17 +37,17 @@ class Frame:
         v = self.localvars[operand].Value
         if v == None:
             name = self.func.fptr.metadata.localnames[operand]
-            raise NameError("undefined free variable {name}".format(name = name))
+            raise NameError("undefined local variable {name}".format(name = name))
         return v
 
     def load_global(self, var: MObject) -> MObject:
         if var in self.func.globals:
             v = self.func.globals[var]
             if v == None:
-                raise NameError("undefined global variable {var}".format(var = var))
+                raise NameError("undefined global variable {name}".format(name = var))
             return v
         else:
-            raise NameError("no global variable {var}".format(var = var) )
+            raise NameError("no global variable {name}".format(name = var))
     def load_reference(self, operand: int) -> Variable:
         if operand < 0:
             return self.func.freevars[-operand - 1]
